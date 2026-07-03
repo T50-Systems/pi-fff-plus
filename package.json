@@ -1,7 +1,7 @@
 {
   "name": "@t50-systems/pi-fff-plus",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "T50 Pi extension: safer FFF-powered multi-root file and content search",
   "type": "module",
   "license": "MIT",
