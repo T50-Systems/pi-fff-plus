@@ -113,10 +113,12 @@ function splitRootList(value: string | undefined): string[] {
 
 function defaultExtraRoots(): string[] {
 	const home = os.homedir();
+	const appData = process.env.APPDATA;
 	return uniqueRoots([
 		"C:/dev/pi",
 		path.join(home, ".pi", "agent"),
 		path.join(home, ".agents"),
+		...(appData ? [path.join(appData, "npm")] : []),
 	]);
 }
 
