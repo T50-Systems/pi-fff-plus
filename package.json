@@ -1,0 +1,49 @@
+{
+  "name": "@t50-systems/pi-fff-plus",
+  "private": true,
+  "version": "0.1.0",
+  "description": "T50 Pi extension: safer FFF-powered multi-root file and content search",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/T50-Systems/pi-fff-plus.git"
+  },
+  "keywords": [
+    "pi",
+    "pi-package",
+    "pi-extension",
+    "fff",
+    "search",
+    "grep",
+    "fuzzy-search",
+    "ai-agent"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "files": [
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "npm run typecheck",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ff-labs/fff-node": "*"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "@sinclair/typebox": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  }
+}
