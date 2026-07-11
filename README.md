@@ -114,6 +114,7 @@ pi --no-extensions -e ./src/index.ts
 - [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) — tested upstream APIs, semver range, update review, and rollback.
 - [`SECURITY.md`](SECURITY.md) — supported versions and private disclosure routes.
 - [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) — root authorization, local data, database, dependency, and process boundaries.
+- [`ROADMAP.md`](ROADMAP.md) — issue-backed Next/Later/Deferred commitments, cadence, and ownership.
 - [`docs/EXAMPLES.md`](docs/EXAMPLES.md) — practical search and recovery recipes.
 - [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — reproducible local performance baseline.
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) — vision, promise, and success metrics.
