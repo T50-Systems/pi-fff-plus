@@ -63,6 +63,8 @@ export interface SearchToolDependencies {
 interface GrepState {
 	rooted: RootedQuery;
 	cursor: GrepCursor;
+	query: string;
+	mode: GrepMode;
 }
 
 interface FindState {
@@ -133,12 +135,12 @@ function boundedLines(lines: string[]): { output: string; truncated: boolean } {
 	let bytes = 0;
 	let truncated = false;
 	for (const line of lines) {
-		if (output.length >= MAX_OUTPUT_LINES - 1) {
+		if (output.length >= MAX_OUTPUT_LINES - 10) {
 			truncated = true;
 			break;
 		}
 		const addition = Buffer.byteLength(`${output.length ? "\n" : ""}${line}`);
-		if (bytes + addition + markerBytes > MAX_OUTPUT_BYTES) {
+		if (bytes + addition + markerBytes > MAX_OUTPUT_BYTES - 8_192) {
 			truncated = true;
 			break;
 		}
@@ -275,22 +277,28 @@ export async function executeGrep(
 
 	let rooted: RootedQuery;
 	let upstreamCursor: GrepCursor | null = null;
+	let query: string;
+	let searchMode: GrepMode;
 	if (params.cursor) {
 		const record = deps.cursors.read<GrepState>(params.cursor);
 		rooted = record.state.rooted;
 		const expected = bindingFor("grep", params, {
 			rootIdentity: rooted.rootIdentity,
 			rootGeneration: deps.roots.generation,
-		}, limit, context, detected.mode);
-		upstreamCursor = deps.cursors.resume<GrepState>(params.cursor, expected).cursor;
+		}, limit, context, record.binding.mode);
+		const state = deps.cursors.resume<GrepState>(params.cursor, expected);
+		upstreamCursor = state.cursor;
+		query = state.query;
+		searchMode = state.mode;
 	} else {
 		rooted = deps.roots.resolve(params.path);
+		query = buildQuery(rooted.pathForQuery, params.pattern, params.exclude, rooted.root);
+		searchMode = detected.mode;
 	}
 	const finder = (await deps.finders.ensure(rooted.root)) as SearchFinder;
-	const query = buildQuery(rooted.pathForQuery, params.pattern, params.exclude, rooted.root);
 	const smartCase = params.caseSensitive !== true;
 	const grepResult = finder.grep(query, {
-		mode: detected.mode,
+		mode: searchMode,
 		smartCase,
 		maxMatchesPerFile: Math.min(limit, 50),
 		pageSize: limit,
@@ -317,20 +325,22 @@ export async function executeGrep(
 		if (fuzzy.ok && fuzzy.value.items.length) {
 			fuzzyNotice = "0 exact matches. Maybe you meant this?";
 			result = fuzzy.value;
+			query = params.pattern;
+			searchMode = "fuzzy";
 		}
 	}
 
 	const formatted = formatGrepOutput(result, rooted.root, deps.roots.activeCwd, limit);
 	let output = formatted.output;
 	const notices: string[] = [];
-	if (detected.invalidNotice) notices.push(detected.invalidNotice);
+	if (detected.invalidNotice) notices.push(detected.invalidNotice.slice(0, 1_000));
 	if (result.regexFallbackError) notices.push(`Invalid regex: ${result.regexFallbackError}; used literal match.`);
 	if (formatted.capped || formatted.budgetCapped) notices.push(`Output capped at ${formatted.shownCount} displayed matches by the documented global budget.`);
-	if (rooted.searchedOutsideActiveCwd) notices.push(`Searched external root ${normalizeSlashes(rooted.root)}`);
+	if (rooted.searchedOutsideActiveCwd) notices.push(`Searched external root ${normalizeSlashes(rooted.root).slice(0, 1_000)}`);
 	if (result.nextCursor) {
 		const cursor = deps.cursors.store<GrepState>({
-			binding: bindingFor("grep", params, rooted, limit, context, detected.mode),
-			state: { rooted, cursor: result.nextCursor },
+			binding: bindingFor("grep", params, rooted, limit, context, searchMode),
+			state: { rooted, cursor: result.nextCursor, query, mode: searchMode },
 		});
 		notices.push(`Continue with cursor="${cursor}" and the same query parameters`);
 	}
@@ -375,9 +385,9 @@ export async function executeFind(
 	const shownSoFar = pageIndex * limit + result.items.length;
 	const hasMore = result.items.length >= limit && result.totalMatched > shownSoFar;
 	const notices: string[] = [];
-	if (formatted.weak && formatted.shownCount) notices.push(`Query "${params.pattern}" produced only weak scattered fuzzy matches. Output capped at ${formatted.shownCount}/${result.totalMatched}; use a more specific path or pattern.`);
+	if (formatted.weak && formatted.shownCount) notices.push(`Query "${params.pattern.slice(0, 1_000)}" produced only weak scattered fuzzy matches. Output capped at ${formatted.shownCount}/${result.totalMatched}; use a more specific path or pattern.`);
 	if (formatted.budgetCapped) notices.push("Formatted output reached the documented byte/line budget.");
-	if (rooted.searchedOutsideActiveCwd) notices.push(`Searched external root ${normalizeSlashes(rooted.root)}`);
+	if (rooted.searchedOutsideActiveCwd) notices.push(`Searched external root ${normalizeSlashes(rooted.root).slice(0, 1_000)}`);
 	if (!formatted.weak && hasMore) {
 		const cursor = deps.cursors.store<FindState>({
 			binding: bindingFor("find", params, rooted, limit, 0, "fuzzy"),

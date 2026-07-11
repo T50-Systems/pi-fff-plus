@@ -102,6 +102,8 @@ npm run verify:compatibility
 npm run verify:package
 ```
 
+CI supports Node 22 on Ubuntu and Windows, plus Node 24 compatibility on Ubuntu. Platform-specific symlink/junction fixtures use capability detection without skipping unrelated assertions.
+
 Load the checkout directly:
 
 ```bash

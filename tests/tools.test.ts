@@ -118,17 +118,20 @@ describe("ffgrep execution", () => {
 		const deps = harness(finder);
 		const first = await executeGrep({ pattern: "match", limit: 1 }, undefined, deps);
 		const cursor = text(first).match(/cursor="([^"]+)"/)![1];
-		await expect(executeGrep({ pattern: "match", limit: 1, cursor }, undefined, deps)).resolves.toBeDefined();
+		const final = await executeGrep({ pattern: "match", limit: 1, cursor }, undefined, deps);
+		expect(text(final)).toBe("No matches found");
+		expect(text(final)).not.toContain("Continue with cursor=");
 		await expect(executeGrep({ pattern: "changed", limit: 1, cursor }, undefined, deps)).rejects.toThrow("does not match");
 		deps.roots.refresh(deps.roots.activeCwd);
 		await expect(executeGrep({ pattern: "match", limit: 1, cursor }, undefined, deps)).rejects.toThrow("root generation");
 	});
 
-	it("reports invalid-regex literal and fuzzy recovery without leaking other names", async () => {
+	it("reports invalid-regex literal and fuzzy recovery, then continues in immutable fuzzy mode", async () => {
 		const finder = {
 			grep: vi.fn()
 				.mockReturnValueOnce({ ok: true, value: grepValue([]) })
-				.mockReturnValueOnce({ ok: true, value: grepValue([grepMatch("wanted.ts", 1)]) }),
+				.mockReturnValueOnce({ ok: true, value: grepValue([grepMatch("wanted.ts", 1)], { fileIndex: 1, byteOffset: 0 }) })
+				.mockReturnValueOnce({ ok: true, value: grepValue([]) }),
 		};
 		const deps = harness(finder);
 		const result = await executeGrep({ pattern: "[" }, undefined, deps);
@@ -137,6 +140,11 @@ describe("ffgrep execution", () => {
 		expect(text(result)).not.toContain("unrelated");
 		expect(finder.grep.mock.calls[0][1].mode).toBe("plain");
 		expect(finder.grep.mock.calls[1][1].mode).toBe("fuzzy");
+		const cursor = text(result).match(/cursor="([^"]+)"/)![1];
+		await executeGrep({ pattern: "[", cursor }, undefined, deps);
+		expect(finder.grep.mock.calls[2][0]).toBe("[");
+		expect(finder.grep.mock.calls[2][1].mode).toBe("fuzzy");
+		expect(finder.grep.mock.calls[2][1].cursor).toEqual({ fileIndex: 1, byteOffset: 0 });
 	});
 
 	it("rejects external roots and aborts before finder creation, and makes allowed external paths absolute", async () => {
