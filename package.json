@@ -34,10 +34,13 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "test:coverage": "vitest run --coverage",
-    "benchmark": "vitest bench --run"
+    "benchmark": "vitest bench --run",
+    "verify:compatibility": "node scripts/verify-compatibility.mjs",
+    "verify:package": "npm pack --dry-run",
+    "verify": "npm run typecheck && npm test && npm run verify:compatibility"
   },
   "dependencies": {
-    "@ff-labs/fff-node": "*"
+    "@ff-labs/fff-node": "^0.9.6"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",

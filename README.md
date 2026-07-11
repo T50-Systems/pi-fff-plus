@@ -98,6 +98,8 @@ npm run typecheck
 npm test
 npm run test:coverage
 npm run benchmark
+npm run verify:compatibility
+npm run verify:package
 ```
 
 Load the checkout directly:
@@ -109,6 +111,7 @@ pi --no-extensions -e ./src/index.ts
 ## Documentation
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — components, boundaries, flow, and extension points.
+- [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) — tested upstream APIs, semver range, update review, and rollback.
 - [`docs/EXAMPLES.md`](docs/EXAMPLES.md) — practical search and recovery recipes.
 - [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — reproducible local performance baseline.
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) — vision, promise, and success metrics.
@@ -117,7 +120,7 @@ pi --no-extensions -e ./src/index.ts
 
 ## Release workflow
 
-Update `package.json` and `CHANGELOG.md`, merge validated changes, then create a matching `vX.Y.Z` tag. The release workflow verifies typechecking, tests, dependency audit, and tag/version consistency. GitHub Releases are the distribution baseline; publishing to npm requires a separate explicit decision.
+Update `package.json` and `CHANGELOG.md`, merge validated changes, then create a matching `vX.Y.Z` tag. The release workflow verifies the reviewed upstream range and lockfile, typechecking, tests, dependency audit, package contents, and tag/version consistency. Evaluate and roll back upstream changes using [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md); never rewrite a release tag. GitHub Releases are the distribution baseline; publishing to npm requires a separate explicit decision.
 
 ## License
 
