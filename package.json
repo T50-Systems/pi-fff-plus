@@ -31,8 +31,10 @@
     "access": "public"
   },
   "scripts": {
-    "test": "npm run typecheck",
-    "typecheck": "tsc --noEmit"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "test:coverage": "vitest run --coverage",
+    "benchmark": "vitest bench --run"
   },
   "dependencies": {
     "@ff-labs/fff-node": "*"
@@ -44,6 +46,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.0.0"
+    "@vitest/coverage-v8": "^4.1.9",
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.9"
   }
 }
