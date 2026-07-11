@@ -127,23 +127,25 @@ function bindingFor(
 }
 
 function boundedLines(lines: string[]): { output: string; truncated: boolean } {
+	const marker = "[Formatted output budget reached; use the cursor or narrow the query.]";
+	const markerBytes = Buffer.byteLength(`\n${marker}`);
 	const output: string[] = [];
 	let bytes = 0;
 	let truncated = false;
 	for (const line of lines) {
-		if (output.length >= MAX_OUTPUT_LINES) {
+		if (output.length >= MAX_OUTPUT_LINES - 1) {
 			truncated = true;
 			break;
 		}
 		const addition = Buffer.byteLength(`${output.length ? "\n" : ""}${line}`);
-		if (bytes + addition > MAX_OUTPUT_BYTES) {
+		if (bytes + addition + markerBytes > MAX_OUTPUT_BYTES) {
 			truncated = true;
 			break;
 		}
 		output.push(line);
 		bytes += addition;
 	}
-	if (truncated) output.push("[Formatted output budget reached; use the cursor or narrow the query.]");
+	if (truncated) output.push(marker);
 	return { output: output.join("\n"), truncated };
 }
 

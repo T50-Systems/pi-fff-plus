@@ -52,7 +52,7 @@ Additional roots can be configured for the Pi process:
 PI_FFF_ROOTS="D:/code;C:/other/root" pi
 ```
 
-Comma-separated values are also accepted. Roots are normalized, deduplicated, and authorization is applied before search. Do not add broad sensitive directories unless agents should be able to search them.
+Comma-separated values are also accepted. Roots are normalized, deduplicated, and authorization is applied before search or index creation. Existing paths are resolved canonically: a symlink or junction that leaves its configured root is denied. Do not add broad sensitive directories unless agents should be able to search them.
 
 ## T50 changes vs upstream
 
@@ -61,7 +61,9 @@ Comma-separated values are also accepted. Roots are normalized, deduplicated, an
 - Normalizes output paths to `/`.
 - Emits absolute paths for results outside the active cwd.
 - Treats `ffgrep.limit` as a global display cap, not a per-file cap.
-- Provides pagination cursors instead of unbounded output.
+- Enforces `ffgrep` limits of 1–50 matches and 0–5 context lines, `fffind` limits of 1–200 paths, and a 600-line/256 KiB formatted-output ceiling.
+- Binds pagination cursors to the exact pattern, path, exclusions, case/context/limit options, mode, authorized root, and root generation.
+- Invalidates continuation semantics after root refresh, rescan, mode change, finder destruction, or cursor eviction; retry without the cursor.
 - Explains configured roots and recovery steps in errors and `/fff-health`.
 
 ## Commands
@@ -84,9 +86,9 @@ Run `/fff-health`. The selected path must be inside a configured root. Add the s
 
 Run `/fff-rescan`, then retry with a bare identifier and a broader path constraint.
 
-### Output is truncated
+### Output is truncated or a cursor is rejected
 
-This is intentional. Follow the returned cursor or narrow the path/pattern; do not increase limits until the query is specific.
+This is intentional. Continue using the returned cursor **with every original query parameter unchanged**, or narrow the path/pattern. Unknown, evicted, mismatched, or stale cursors fail closed; restart the same query without `cursor`. Caller limits outside the documented ranges are rejected rather than silently expanded.
 
 ## Development
 
