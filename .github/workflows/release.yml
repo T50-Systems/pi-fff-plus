@@ -17,9 +17,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run verify:compatibility
       - run: npm run typecheck
       - run: npm test
       - run: npm audit --audit-level=high
+      - run: npm run verify:package
       - name: Verify tag matches package version
         shell: bash
         run: |
