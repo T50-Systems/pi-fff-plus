@@ -50,7 +50,7 @@
     "@sinclair/typebox": "*"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^26.1.1",
     "@vitest/coverage-v8": "^4.1.9",
     "typescript": "^5.0.0",
     "vitest": "^4.1.9"
