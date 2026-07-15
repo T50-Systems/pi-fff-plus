@@ -93,12 +93,11 @@ This is intentional. Continue using the returned cursor **with every original qu
 ## Development
 
 ```bash
-npm install
-npm run typecheck
-npm test
+npm ci
+npm run verify
 npm run test:coverage
 npm run benchmark
-npm run verify:compatibility
+npm audit --audit-level=high
 npm run verify:package
 ```
 
@@ -115,6 +114,7 @@ pi --no-extensions -e ./src/index.ts
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — components, boundaries, flow, and extension points.
 - [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) — tested upstream APIs, semver range, update review, and rollback.
 - [`SECURITY.md`](SECURITY.md) — supported versions and private disclosure routes.
+- [`docs/GITHUB_ACTIONS.md`](docs/GITHUB_ACTIONS.md) — reviewed action pins, offline enforcement, Dependabot updates, permissions, and rollback.
 - [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) — root authorization, local data, database, dependency, and process boundaries.
 - [`ROADMAP.md`](ROADMAP.md) — issue-backed Next/Later/Deferred commitments, cadence, and ownership.
 - [`docs/EXAMPLES.md`](docs/EXAMPLES.md) — practical search and recovery recipes.

@@ -1,0 +1,7 @@
+name: Mutable action reference
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5 # v5.0.1
