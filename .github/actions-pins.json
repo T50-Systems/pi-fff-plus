@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "pins": [
+    {
+      "action": "actions/checkout",
+      "publisher": "GitHub",
+      "officialRepository": "https://github.com/actions/checkout",
+      "releaseTag": "v5.0.1",
+      "sha": "93cb6efe18208431cddfb8368fd83d5badbf9bfd",
+      "releaseEvidence": "https://github.com/actions/checkout/releases/tag/v5.0.1",
+      "commitEvidence": "https://github.com/actions/checkout/commit/93cb6efe18208431cddfb8368fd83d5badbf9bfd",
+      "reviewStatus": "reviewed",
+      "reviewedOn": "2026-07-15",
+      "references": {
+        ".github/workflows/ci.yml": 1,
+        ".github/workflows/release.yml": 1
+      }
+    },
+    {
+      "action": "actions/setup-node",
+      "publisher": "GitHub",
+      "officialRepository": "https://github.com/actions/setup-node",
+      "releaseTag": "v5.0.0",
+      "sha": "a0853c24544627f65ddf259abe73b1d18a591444",
+      "releaseEvidence": "https://github.com/actions/setup-node/releases/tag/v5.0.0",
+      "commitEvidence": "https://github.com/actions/setup-node/commit/a0853c24544627f65ddf259abe73b1d18a591444",
+      "reviewStatus": "reviewed",
+      "reviewedOn": "2026-07-15",
+      "references": {
+        ".github/workflows/ci.yml": 1,
+        ".github/workflows/release.yml": 1
+      }
+    }
+  ]
+}

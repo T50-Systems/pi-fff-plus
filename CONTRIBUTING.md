@@ -11,9 +11,12 @@
 ```bash
 git clone https://github.com/T50-Systems/pi-fff-plus.git
 cd pi-fff-plus
-npm install
-npm run typecheck
-npm test
+npm ci
+npm run verify
+npm run test:coverage
+npm run benchmark
+npm audit --audit-level=high
+npm run verify:package
 ```
 
 Test interactively without installing globally:
@@ -35,3 +38,4 @@ Then run `/fff-health`, followed by a bounded `fffind` or `ffgrep` request.
 - Preserve global output caps and cursor behavior.
 - Update README/docs for user-visible tool or command changes.
 - Run `npm audit --audit-level=high` for dependency changes.
+- Run `npm run verify:workflows` after any `.github/workflows` or action-pin inventory change; follow [`docs/GITHUB_ACTIONS.md`](docs/GITHUB_ACTIONS.md) for publisher, provenance, permissions, update, and rollback review.

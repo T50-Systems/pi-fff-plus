@@ -38,8 +38,9 @@
     "benchmark:query": "vitest bench --run",
     "benchmark:index": "node benchmarks/fixed-fixture.mjs",
     "verify:compatibility": "node scripts/verify-compatibility.mjs",
+    "verify:workflows": "node scripts/verify-workflow-actions.mjs",
     "verify:package": "npm pack --dry-run",
-    "verify": "npm run typecheck && npm test && npm run verify:compatibility"
+    "verify": "npm run typecheck && npm test && npm run verify:compatibility && npm run verify:workflows"
   },
   "dependencies": {
     "@ff-labs/fff-node": "^0.9.6"
