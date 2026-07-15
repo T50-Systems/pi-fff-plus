@@ -31,7 +31,7 @@ import {
 
 const MENTION_MAX_RESULTS = 20;
 type FffMode = "tools-and-ui" | "tools-only" | "override";
-const VALID_MODES: FffMode[] = ["tools-and-ui", "tools-only", "override"];
+const VALID_MODES: readonly FffMode[] = ["tools-and-ui", "tools-only", "override"];
 
 interface ToolNames {
 	grep: string;
@@ -42,6 +42,28 @@ function resolveToolNames(mode: FffMode): ToolNames {
 	return mode === "override"
 		? { grep: "grep", find: "find" }
 		: { grep: "ffgrep", find: "fffind" };
+}
+
+function restoreFffMode(
+	entries: readonly unknown[] | undefined,
+	fallback: FffMode,
+): FffMode {
+	if (!entries) return fallback;
+	for (let index = entries.length - 1; index >= 0; index--) {
+		const entry = entries[index];
+		if (!entry || typeof entry !== "object") continue;
+		const candidate = entry as {
+			type?: unknown;
+			customType?: unknown;
+			data?: { mode?: unknown } | null;
+		};
+		if (candidate.type !== "custom" || candidate.customType !== "fff-mode") continue;
+		const mode = candidate.data?.mode;
+		if (typeof mode === "string" && VALID_MODES.includes(mode as FffMode)) {
+			return mode as FffMode;
+		}
+	}
+	return fallback;
 }
 
 function extractAtPrefix(textBeforeCursor: string): string | null {
@@ -191,16 +213,7 @@ export default function fffPlusExtension(pi: ExtensionAPI) {
 			roots.refresh(ctx.cwd);
 			cursors.clear("root refresh");
 			const entries = ctx.sessionManager?.getEntries();
-			const modeEntry = entries
-				? [...entries].reverse().find(
-						(entry: { type: string; customType?: string }) =>
-							entry.type === "custom" && entry.customType === "fff-mode",
-					)
-				: undefined;
-			const restored = (modeEntry as any)?.data?.mode;
-			if (typeof restored === "string" && VALID_MODES.includes(restored as FffMode)) {
-				currentMode = restored as FffMode;
-			}
+			currentMode = restoreFffMode(entries, currentMode);
 			registerAutocompleteProvider(ctx);
 			await finders.ensure(roots.activeCwd);
 		} catch (error) {
