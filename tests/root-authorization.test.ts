@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -39,6 +39,19 @@ describe("RootAuthorization", () => {
 		expect(() => auth.resolve("../outside")).toThrow("outside configured FFF roots");
 	});
 
+	it("snapshots canonical root path and filesystem object identity", () => {
+		const fixture = mkdtempSync(path.join(os.tmpdir(), "fff-identity-"));
+		fixtures.push(fixture);
+		const auth = new RootAuthorization({ cwd: fixture, extraRoots: [] });
+		const identity = statSync(fixture, { bigint: true });
+		const canonicalPath = realpathSync.native(fixture).replaceAll("\\", "/");
+		expect(auth.snapshotRootIdentity(fixture)).toEqual({
+			canonicalPath: process.platform === "win32" ? canonicalPath.toLowerCase() : canonicalPath,
+			device: String(identity.dev),
+			inode: String(identity.ino),
+		});
+	});
+
 	it("denies a symlink or junction whose canonical target escapes the root", () => {
 		const parent = mkdtempSync(path.join(os.tmpdir(), "fff-links-"));
 		fixtures.push(parent);
@@ -65,10 +78,15 @@ describe("RootAuthorization", () => {
 			pathApi: path.win32,
 			exists: () => false,
 			realpath: (value) => value,
-			stat: () => ({ isDirectory: () => true }),
+			stat: () => ({ isDirectory: () => true, dev: 7, ino: 11 }),
 		});
 		expect(auth.resolve("c:/work/root/src").rootIdentity.toLowerCase()).toBe("c:/work/root");
 		expect(auth.resolve("\\\\server\\share\\code\\src").rootIdentity).toBe("//server/share/code");
+		expect(auth.snapshotRootIdentity("C:\\Work\\Root")).toEqual({
+			canonicalPath: "c:/work/root",
+			device: "7",
+			inode: "11",
+		});
 		expect(() => auth.resolve("D:\\Work\\Root")).toThrow("outside configured FFF roots");
 	});
 });

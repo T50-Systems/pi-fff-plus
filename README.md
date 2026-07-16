@@ -52,7 +52,7 @@ Additional roots can be configured for the Pi process:
 PI_FFF_ROOTS="D:/code;C:/other/root" pi
 ```
 
-Comma-separated values are also accepted. Roots are normalized, deduplicated, and authorization is applied before search or index creation. Existing paths are resolved canonically: a symlink or junction that leaves its configured root is denied. Do not add broad sensitive directories unless agents should be able to search them.
+Comma-separated values are also accepted. Roots are normalized, deduplicated, and authorization is applied before search or index creation. Existing paths are resolved canonically: a symlink or junction that leaves its configured root is denied. Finder creation also uses best-effort pre/post canonical-path and filesystem-identity checks; this narrows selected replacement races but does not eliminate TOCTOU windows or provide an OS sandbox. Do not add broad sensitive directories unless agents should be able to search them.
 
 ## T50 changes vs upstream
 
@@ -64,6 +64,7 @@ Comma-separated values are also accepted. Roots are normalized, deduplicated, an
 - Enforces `ffgrep` limits of 1–50 matches and 0–5 context lines, `fffind` limits of 1–200 paths, and a 600-line/256 KiB formatted-output ceiling.
 - Binds pagination cursors to the exact pattern, path, exclusions, case/context/limit options, mode, authorized root, and root generation.
 - Invalidates continuation semantics after root refresh, rescan, mode change, finder destruction, or cursor eviction; retry without the cursor.
+- Destroys and invalidates a newly created finder when pre/post root identity snapshots differ or post-create identity verification fails; this is explicitly best-effort, not race elimination.
 - Explains configured roots and recovery steps in errors and `/fff-health`.
 
 ## Commands

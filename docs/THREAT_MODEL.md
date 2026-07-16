@@ -10,9 +10,13 @@ The extension handles caller-provided patterns, path constraints, exclusions, co
 
 `RootAuthorization` performs platform-aware lexical containment first and canonical containment for existing paths. It rejects `..` traversal, sibling-prefix confusion, incompatible Windows drives/UNC shares, and symlinks or junctions whose canonical target leaves the authorized root. Authorization completes before `FileFinder.create`, `grep`, or `fileSearch`.
 
-This is **not a filesystem sandbox**. The extension and upstream native library run with the Pi process user's operating-system privileges. A configured root authorizes search within that root. Adding a broad root, enabling filesystem-root scanning, or explicitly adding a symlink target expands the authorized surface.
+Immediately before `FileFinder.create`, `FinderLifecycle` snapshots the root's canonical path, device, and inode. It snapshots the same identity again immediately after creation. If the post-create snapshot fails or any field differs, the new finder is destroyed, its cache entry is discarded, cursor state is invalidated, and creation fails closed. The snapshot provider is injectable so replacement races are deterministic in tests; supported-platform fixtures also replace a directory with a Linux symlink or Windows junction when the host permits link creation.
 
-Filesystem state can change after authorization (for example, a concurrent link replacement). OS-level isolation and trusted local filesystem permissions remain necessary for hostile multi-user environments.
+This is a **best-effort detection guard, not race elimination**. Residual TOCTOU windows remain: replacement can occur after authorization but before the first identity snapshot; after the post-create snapshot but before or during native traversal; or later while watchers and scans use the tree. Filesystem identity metadata can also have platform/filesystem limitations or be reused. Descendants can change independently of the root object. OS-level isolation and trusted local filesystem permissions remain necessary for hostile multi-user environments.
+
+A strict guarantee requires `@ff-labs/fff-node` to bind authorization and every traversal to the same opened directory handle/object without reopening the path. That capability is not present in the supported API and is tracked upstream in [dmtrKovalenko/fff#682](https://github.com/dmtrKovalenko/fff/issues/682). Until such a capability is designed, implemented, and separately adopted, this extension must not claim strict TOCTOU resistance.
+
+This is **not a filesystem sandbox**. The extension and upstream native library run with the Pi process user's operating-system privileges. A configured root authorizes search within that root. Adding a broad root, enabling filesystem-root scanning, or explicitly adding a symlink target expands the authorized surface.
 
 ### Local query and content handling
 

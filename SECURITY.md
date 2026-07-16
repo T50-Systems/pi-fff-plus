@@ -19,7 +19,7 @@ Coordination targets follow the organization policy: acknowledgement within 3 bu
 See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md). In summary:
 
 - Configured roots are an application authorization policy, not an operating-system filesystem sandbox.
-- Lexical and canonical checks deny traversal and symlink/junction escapes before finder creation or search.
+- Lexical and canonical checks deny traversal and symlink/junction escapes before finder creation or search; pre/post root identity snapshots add best-effort replacement detection but do not eliminate TOCTOU races.
 - The extension runs with the Pi process user's filesystem permissions; it cannot protect data from other extensions or code in that process.
 - Queries and matched content stay local to the configured `@ff-labs/fff-node` process boundary and are not intentionally logged or sent to a network service.
 - Optional frecency/history database paths and broad roots expand the local data surface and must be treated as sensitive configuration.

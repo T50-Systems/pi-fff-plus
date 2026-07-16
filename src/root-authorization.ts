@@ -10,13 +10,25 @@ export interface RootedQuery {
 	rootIdentity: string;
 }
 
+export interface RootIdentitySnapshot {
+	canonicalPath: string;
+	device: string;
+	inode: string;
+}
+
+interface RootStat {
+	isDirectory(): boolean;
+	dev?: number | bigint;
+	ino?: number | bigint;
+}
+
 export interface RootAuthorizationOptions {
 	cwd?: string;
 	extraRoots?: string[];
 	pathApi?: PlatformPath;
 	realpath?: (value: string) => string;
 	exists?: (value: string) => boolean;
-	stat?: (value: string) => { isDirectory(): boolean };
+	stat?: (value: string) => RootStat;
 }
 
 export function normalizeSlashes(value: string): string {
@@ -106,7 +118,7 @@ export class RootAuthorization {
 	private readonly pathApi: PlatformPath;
 	private readonly realpath: (value: string) => string;
 	private readonly exists: (value: string) => boolean;
-	private readonly stat: (value: string) => { isDirectory(): boolean };
+	private readonly stat: (value: string) => RootStat;
 	private configuredExtraRoots: string[];
 	private _activeCwd: string;
 	private _knownRoots: string[];
@@ -116,7 +128,7 @@ export class RootAuthorization {
 		this.pathApi = options.pathApi ?? path;
 		this.realpath = options.realpath ?? ((value) => realpathSync.native(value));
 		this.exists = options.exists ?? existsSync;
-		this.stat = options.stat ?? statSync;
+		this.stat = options.stat ?? ((value) => statSync(value, { bigint: true }));
 		this.configuredExtraRoots = options.extraRoots ?? [
 			...defaultExtraRoots(),
 			...splitRootList(process.env.PI_FFF_ROOTS),
@@ -138,6 +150,22 @@ export class RootAuthorization {
 
 	get generation(): number {
 		return this._generation;
+	}
+
+	snapshotRootIdentity(root: string): RootIdentitySnapshot {
+		const canonicalPath = this.canonical(root);
+		const identity = this.stat(canonicalPath);
+		if (identity.dev === undefined || identity.ino === undefined) {
+			throw new Error(
+				`Filesystem identity metadata is unavailable for FFF root: ${normalizeSlashes(canonicalPath)}`,
+			);
+		}
+		const normalizedPath = normalizeSlashes(canonicalPath);
+		return {
+			canonicalPath: this.pathApi === path.win32 ? normalizedPath.toLowerCase() : normalizedPath,
+			device: String(identity.dev),
+			inode: String(identity.ino),
+		};
 	}
 
 	refresh(cwd: string, extraRoots = this.configuredExtraRoots): void {

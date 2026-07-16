@@ -1,4 +1,4 @@
-import { normalizeRoot, normalizeSlashes } from "./root-authorization.js";
+import { normalizeRoot, normalizeSlashes, type RootIdentitySnapshot } from "./root-authorization.js";
 
 export interface ManagedFinder {
 	readonly isDestroyed: boolean;
@@ -12,9 +12,22 @@ export type FinderFactory<T extends ManagedFinder> = (
 	root: string,
 ) => T | Promise<T>;
 
+export type RootIdentitySnapshotter = (root: string) => RootIdentitySnapshot;
+
 interface FinderEntry<T> {
 	finder: T | null;
 	promise: Promise<T> | null;
+}
+
+function snapshotsMatch(
+	before: RootIdentitySnapshot,
+	after: RootIdentitySnapshot,
+): boolean {
+	return (
+		before.canonicalPath === after.canonicalPath &&
+		before.device === after.device &&
+		before.inode === after.inode
+	);
 }
 
 export class FinderLifecycle<T extends ManagedFinder> {
@@ -22,8 +35,9 @@ export class FinderLifecycle<T extends ManagedFinder> {
 
 	constructor(
 		private readonly createFinder: FinderFactory<T>,
-		private readonly waitForScanMs = 15_000,
-		private readonly onInvalidate: (reason: string) => void = () => {},
+		private readonly waitForScanMs: number,
+		private readonly onInvalidate: (reason: string) => void,
+		private readonly snapshotRootIdentity: RootIdentitySnapshotter,
 	) {}
 
 	async ensure(root: string): Promise<T> {
@@ -34,21 +48,46 @@ export class FinderLifecycle<T extends ManagedFinder> {
 
 		entry = { finder: null, promise: null };
 		this.entries.set(normalizedRoot, entry);
-		entry.promise = Promise.resolve(this.createFinder(normalizedRoot))
-			.then(async (finder) => {
+		entry.promise = (async () => {
+			let finder: T | undefined;
+			let finderDestroyed = false;
+			const destroyCreatedFinder = () => {
+				if (!finder || finderDestroyed) return;
+				finderDestroyed = true;
+				finder.destroy();
+			};
+			try {
+				const before = this.snapshotRootIdentity(normalizedRoot);
+				const created = this.createFinder(normalizedRoot);
+				finder = created instanceof Promise ? await created : created;
+				let after: RootIdentitySnapshot;
+				try {
+					after = this.snapshotRootIdentity(normalizedRoot);
+				} catch (error) {
+					destroyCreatedFinder();
+					this.onInvalidate("root identity verification failure");
+					throw error;
+				}
+				if (!snapshotsMatch(before, after)) {
+					destroyCreatedFinder();
+					this.onInvalidate("root identity mismatch");
+					throw new Error(
+						`Root identity changed while creating the FFF file finder for ${normalizeSlashes(normalizedRoot)}`,
+					);
+				}
 				entry!.finder = finder;
 				await finder.waitForScan(this.waitForScanMs);
 				return finder;
-			})
-			.catch((error) => {
+			} catch (error) {
+				destroyCreatedFinder();
 				this.entries.delete(normalizedRoot);
 				throw new Error(
 					`Failed to create FFF file finder for ${normalizeSlashes(normalizedRoot)}: ${error instanceof Error ? error.message : String(error)}`,
 				);
-			})
-			.finally(() => {
+			} finally {
 				if (entry) entry.promise = null;
-			});
+			}
+		})();
 		return entry.promise;
 	}
 
