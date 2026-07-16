@@ -134,7 +134,7 @@ export default function fffPlusExtension(pi: ExtensionAPI) {
 		"FFF_ENABLE_ROOT_SCAN",
 	);
 
-	const finders = new FinderLifecycle<FileFinder>(async (root) => {
+	const finders = new FinderLifecycle<FileFinder>((root) => {
 		const result = FileFinder.create({
 			basePath: root,
 			frecencyDbPath,
@@ -145,7 +145,7 @@ export default function fffPlusExtension(pi: ExtensionAPI) {
 		});
 		if (!result.ok) throw new Error(result.error);
 		return result.value;
-	}, 15_000, () => cursors.clear());
+	}, 15_000, () => cursors.clear(), (root) => roots.snapshotRootIdentity(root));
 	const toolDeps = { roots, finders, cursors };
 
 	async function getMentionItems(

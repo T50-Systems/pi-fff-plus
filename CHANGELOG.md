@@ -13,6 +13,7 @@ All notable changes to this project are documented here.
 - immutable, reviewed GitHub Action pins with an offline all-workflow validator, Dependabot policy verification, and negative policy fixtures.
 - GitHub issue #38 is CI supply-chain hardening only; it requires no `dmtrKovalenko/fff` or `@ff-labs/fff-node` update and does not include issue #36 or #37 behavior.
 - deterministic lifecycle/UI coverage now exercises mode restoration and malformed-state recovery, autocomplete delegation, command notifications and persistence, rendering, and shutdown with a separate entrypoint coverage budget.
+- conservative root identity snapshots around finder creation, with fail-closed destruction/invalidation on mismatch, deterministic replacement-race coverage, and explicit residual TOCTOU/upstream handle-bound limits for issue #36.
 
 ## 0.1.1
 

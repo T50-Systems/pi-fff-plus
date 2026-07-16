@@ -14,6 +14,12 @@ The extension depends on these upstream behaviors:
 
 `tests/upstream-compatibility.test.ts` exercises creation, scan completion, grep, file search, rescan, health, and destruction against a temporary fixture.
 
+## Root identity capability boundary
+
+The extension keeps the supported `@ff-labs/fff-node` range unchanged. It performs local canonical-path/device/inode snapshots immediately before and after `FileFinder.create`, but this is only best-effort replacement detection. The current path-based upstream API cannot bind prior authorization to the directory object opened and traversed by native code.
+
+Strict handle-bound authorization requires an upstream API and traversal contract; see [dmtrKovalenko/fff#682](https://github.com/dmtrKovalenko/fff/issues/682). Any future adoption must use the normal separately reviewed dependency-update process below.
+
 ## Updating upstream
 
 1. Open or select an issue describing the candidate version, API changes, and rollback owner.

@@ -3,8 +3,8 @@
 ## Components
 
 - `src/index.ts` is the thin Pi boundary: flags, event/tool/command registration, UI rendering, and autocomplete composition.
-- `src/root-authorization.ts` owns root discovery, normalization, lexical containment, canonical-path containment, and rooted-query resolution.
-- `src/finder-lifecycle.ts` owns finder creation, scan waiting, caching, rescan, health access, and destruction behind an injectable factory.
+- `src/root-authorization.ts` owns root discovery, normalization, lexical containment, canonical-path containment, rooted-query resolution, and injectable canonical/device/inode identity snapshots.
+- `src/finder-lifecycle.ts` owns guarded finder creation, pre/post root identity comparison, scan waiting, caching, invalidation, rescan, health access, and destruction behind injectable factory and snapshot seams.
 - `src/tools.ts` owns schemas, execution budgets, search handlers, path formatting, and notices.
 - `src/cursors.ts` owns bounded cursor storage and immutable query/root-generation bindings.
 - `src/query.ts` owns pure normalization of path constraints, exclusions, and FFF query strings.
@@ -14,7 +14,7 @@
 
 1. The extension registers commands, tools, and optional UI completion behavior.
 2. `RootAuthorization` resolves the selected path and validates both lexical and canonical containment.
-3. Only after authorization succeeds, `FinderLifecycle` creates or retrieves the root-specific finder.
+3. Only after authorization succeeds, `FinderLifecycle` snapshots root identity, creates the root-specific finder, snapshots again, and retains it only when both snapshots match.
 4. `buildQuery` normalizes includes/excludes without touching the filesystem.
 5. `executeGrep` or `executeFind` invokes the finder, formats bounded output, and stores a bound continuation cursor when available.
 
@@ -23,6 +23,7 @@
 - Root authorization must finish before creating or querying a finder.
 - Lexical `..`, sibling-prefix, drive/UNC, and mixed-separator escapes are rejected with platform-aware path operations.
 - Existing paths are resolved canonically. A symlink or Windows junction that resolves outside its configured root is denied; callers must explicitly authorize the canonical target as a separate root.
+- Pre/post creation identity checks narrow selected replacement races but remain best-effort; strict semantics require upstream handle-bound creation and traversal.
 - This configured-root policy limits the extension's search surface but is not an operating-system filesystem sandbox.
 - Extracted authorization, lifecycle, cursor, and tool modules have no Pi UI dependency.
 - Raw file content and search queries remain local.
@@ -34,5 +35,5 @@
 - Add roots through `PI_FFF_ROOTS`, not hard-coded project-specific paths.
 - Add tool modes through the `FffMode`/tool-name mapping in the entrypoint.
 - Add query syntax in `query.ts` with focused cross-platform tests.
-- Inject a finder factory for deterministic lifecycle/tool tests instead of using a live index.
+- Inject finder factories and root identity snapshot providers for deterministic lifecycle/race tests instead of using a live index.
 - Add diagnostics to `/fff-health` without dumping filenames or file contents.
