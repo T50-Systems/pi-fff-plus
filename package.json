@@ -43,7 +43,7 @@
     "verify": "npm run typecheck && npm test && npm run verify:compatibility && npm run verify:workflows"
   },
   "dependencies": {
-    "@ff-labs/fff-node": "^0.9.6"
+    "@ff-labs/fff-node": "^0.10.0"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
