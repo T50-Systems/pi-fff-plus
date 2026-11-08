@@ -3,11 +3,11 @@
 Run both deterministic benchmarks from a clean checkout:
 
 ```bash
-npm ci
-npm run benchmark
+pnpm install --frozen-lockfile
+pnpm run benchmark
 ```
 
-Run either layer alone with `npm run benchmark:query` or `npm run benchmark:index`.
+Run either layer alone with `pnpm run benchmark:query` or `pnpm run benchmark:index`.
 
 ## Query normalization
 

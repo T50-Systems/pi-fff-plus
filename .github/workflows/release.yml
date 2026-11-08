@@ -14,17 +14,22 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          version: 10.34.9
+          run_install: false
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run verify:workflows
-      - run: npm run verify:compatibility
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm audit --audit-level=high
-      - run: npm run verify:package
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify:workflows
+      - run: pnpm run verify:compatibility
+      - run: pnpm run typecheck
+      - run: pnpm test
+      - run: pnpm audit --audit-level=high
+      - run: pnpm run verify:package
       - name: Verify tag matches package version
         shell: bash
         run: |

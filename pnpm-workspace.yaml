@@ -1,0 +1,5 @@
+enablePrePostScripts: true
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - "@ff-labs/fff-node"

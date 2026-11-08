@@ -26,18 +26,23 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          version: 10.34.9
+          run_install: false
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Verify workflow action pins
-        run: npm run verify:workflows
+        run: pnpm run verify:workflows
       - name: Verify upstream compatibility range
-        run: npm run verify:compatibility
+        run: pnpm run verify:compatibility
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
       - name: Test
-        run: npm test
+        run: pnpm test
       - name: Security audit
-        run: npm audit --audit-level=high
+        run: pnpm audit --audit-level=high

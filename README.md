@@ -94,12 +94,12 @@ This is intentional. Continue using the returned cursor **with every original qu
 ## Development
 
 ```bash
-npm ci
-npm run verify
-npm run test:coverage
-npm run benchmark
-npm audit --audit-level=high
-npm run verify:package
+pnpm install --frozen-lockfile
+pnpm run verify
+pnpm run test:coverage
+pnpm run benchmark
+pnpm audit --audit-level=high
+pnpm run verify:package
 ```
 
 CI supports Node 22 on Ubuntu and Windows, plus Node 24 compatibility on Ubuntu. Platform-specific symlink/junction fixtures use capability detection without skipping unrelated assertions.
