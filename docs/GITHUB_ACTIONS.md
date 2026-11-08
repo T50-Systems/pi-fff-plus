@@ -22,7 +22,7 @@ The release tag comment after each `uses:` pin is documentation only; GitHub exe
 Run:
 
 ```bash
-npm run verify:workflows
+pnpm run verify:workflows
 ```
 
 The validator uses only Node.js built-ins and performs no network requests. It recursively scans every workflow YAML file, rejects mutable, uppercase, dynamic, container, unversioned, or malformed external references, requires a trailing full release tag comment, and requires the SHA/tag/reference count to match the reviewed inventory. It also verifies that Dependabot retains a scheduled `github-actions` update entry for the repository root. Negative fixtures prove that both a mutable tag and an undocumented immutable SHA fail closed.
@@ -35,7 +35,7 @@ Dependabot continues to check the `github-actions` ecosystem weekly. A Dependabo
 2. Resolve the proposed full release tag from the official repository (for example, `git ls-remote <official-repository>.git refs/tags/<full-tag>`) and require an exact lowercase 40-character result.
 3. Review the release notes and the diff from the previously approved release, including bundled runtime changes, credential handling, network behavior, and requested permissions.
 4. Update the workflow SHA and trailing tag comment together with `.github/actions-pins.json` and this evidence table.
-5. Run `npm run verify:workflows` and the full repository validation before merge. Hosted checks remain required because local validation does not execute the actions.
+5. Run `pnpm run verify:workflows` and the full repository validation before merge. Hosted checks remain required because local validation does not execute the actions.
 
 Major-version upgrades stay in their own dependency change and must not be silently absorbed into unrelated work.
 
